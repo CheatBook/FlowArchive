@@ -6,25 +6,45 @@ import type { Knowledge } from '../types/index';
 
 const API_URL = 'http://localhost:8080/api/knowledge';
 
+/**
+ * 【KnowledgeForm コンポーネント】
+ * 
+ * ナレッジの「新規作成」と「編集」の両方を担当する画面です。
+ */
 const KnowledgeForm: React.FC = () => {
+  /**
+   * [URL パラメータの取得：useParams]
+   * /edit/5 にアクセスした場合、id に "5" が入ります。
+   * /new にアクセスした場合は id は undefined になります。
+   */
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  // フォームに入力された値を保存する State
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  
+  // 「エディタ」と「プレビュー」のどちらを表示しているかの State
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  
+  // 保存ボタンの連打防止などのためのローディング状態
   const [loading, setLoading] = useState(false);
 
+  /**
+   * 編集モードの時だけ、既存のデータをサーバーから取ってくる
+   */
   useEffect(() => {
     if (id) {
       fetchKnowledge(id);
     }
-  }, [id]);
+  }, [id]); // id が変わるたびに（＝別の記事の編集画面に行くたびに）実行
 
   const fetchKnowledge = async (knowledgeId: string) => {
     try {
       const response = await fetch(`${API_URL}/${knowledgeId}`);
       if (response.ok) {
         const data = await response.json();
+        // 取得したデータを入力欄にセットする
         setTitle(data.title);
         setContent(data.content);
       }
@@ -33,12 +53,17 @@ const KnowledgeForm: React.FC = () => {
     }
   };
 
+  /**
+   * 保存ボタン（作成・更新）が押された時の処理
+   */
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // フォーム送信によるページリロードを止める
     setLoading(true);
+    
     const knowledge: Knowledge = { title, content };
 
     try {
+      // id があれば PUT（更新）、なければ POST（新規作成）
       const url = id ? `${API_URL}/${id}` : API_URL;
       const method = id ? 'PUT' : 'POST';
       
@@ -49,6 +74,7 @@ const KnowledgeForm: React.FC = () => {
       });
 
       if (response.ok) {
+        // 保存に成功したら一覧画面（ダッシュボード）に戻る
         navigate('/');
       }
     } catch (error) {
@@ -62,19 +88,25 @@ const KnowledgeForm: React.FC = () => {
     <div className="max-w-5xl mx-auto">
       <section className="bg-white rounded-3xl shadow-2xl shadow-teal-900/5 border border-teal-50 overflow-hidden">
         <div className="p-8 sm:p-10">
+          
+          {/* 画面上部のタイトルと切り替えスイッチ */}
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-[#0d3b3b] flex items-center gap-3">
               <span className={`w-2 h-8 rounded-full ${id ? 'bg-amber-400' : 'bg-[#1a7a7a]'}`}></span>
               {id ? 'ナレッジを編集' : '新しいナレッジを追加'}
             </h2>
+            
+            {/* エディタ / プレビュー の切り替えタブ */}
             <div className="flex bg-teal-50 p-1 rounded-xl">
               <button
+                type="button"
                 onClick={() => setIsPreviewMode(false)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${!isPreviewMode ? 'bg-white text-[#1a7a7a] shadow-sm' : 'text-[#4a6b6b] hover:text-[#1a7a7a]'}`}
               >
                 <Edit3 size={16} /> エディタ
               </button>
               <button
+                type="button"
                 onClick={() => setIsPreviewMode(true)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isPreviewMode ? 'bg-white text-[#1a7a7a] shadow-sm' : 'text-[#4a6b6b] hover:text-[#1a7a7a]'}`}
               >
@@ -84,6 +116,7 @@ const KnowledgeForm: React.FC = () => {
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* タイトル入力 */}
             <div>
               <label className="block text-sm font-bold text-[#2c4a4a] mb-2 ml-1">タイトル</label>
               <input
@@ -95,13 +128,17 @@ const KnowledgeForm: React.FC = () => {
                 className="w-full px-5 py-4 rounded-2xl border-2 border-teal-50 bg-[#f9fbfb] focus:bg-white focus:ring-4 focus:ring-[#1a7a7a]/10 focus:border-[#1a7a7a] transition-all outline-none placeholder:text-slate-400 text-[#0d3b3b] font-medium"
               />
             </div>
+
+            {/* 本文入力 または プレビュー表示 */}
             <div>
               <label className="block text-sm font-bold text-[#2c4a4a] mb-2 ml-1">内容 (Markdown)</label>
               {isPreviewMode ? (
+                /* プレビュー表示エリア：MarkdownRenderer コンポーネントを使用 */
                 <div className="w-full px-5 py-4 rounded-2xl border-2 border-teal-50 bg-white min-h-[400px] prose prose-teal max-w-none overflow-auto">
                   <MarkdownRenderer content={content || '*プレビューする内容がありません*'} />
                 </div>
               ) : (
+                /* エディタエリア：標準の textarea を使用 */
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
@@ -112,7 +149,10 @@ const KnowledgeForm: React.FC = () => {
                 />
               )}
             </div>
+
+            {/* 下部のボタンエリア */}
             <div className="flex gap-4 pt-2">
+              {/* 保存ボタン */}
               <button
                 type="submit"
                 disabled={loading}
@@ -125,6 +165,8 @@ const KnowledgeForm: React.FC = () => {
                 <Save size={20} />
                 {loading ? '保存中...' : id ? '更新する' : '作成する'}
               </button>
+              
+              {/* キャンセルボタン：一覧に戻る */}
               <button
                 type="button"
                 onClick={() => navigate('/')}

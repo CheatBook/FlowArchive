@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MarkdownRenderer from '../components/MarkdownRenderer';
-import { ArrowLeft, Edit, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, Clock, Calendar } from 'lucide-react';
 import type { Knowledge } from '../types/index';
 
 const API_URL = 'http://localhost:8080/api/knowledge';
 
+/**
+ * 【KnowledgeDetail コンポーネント】
+ * 
+ * 特定のナレッジをフルサイズで表示する詳細ページです。
+ */
 const KnowledgeDetail: React.FC = () => {
+  // URL パラメータから ID を取得
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  
+  // 取得したナレッジデータを保存する State
   const [knowledge, setKnowledge] = useState<Knowledge | null>(null);
 
+  /**
+   * 画面表示時にデータを取得
+   */
   useEffect(() => {
     if (id) {
       fetchKnowledge(id);
@@ -23,63 +34,72 @@ const KnowledgeDetail: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         setKnowledge(data);
+      } else {
+        // 見つからなかった場合は一覧に戻す
+        navigate('/');
       }
     } catch (error) {
       console.error('データの取得に失敗しました:', error);
     }
   };
 
-  if (!knowledge) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a7a7a]"></div>
-      </div>
-    );
-  }
+  // データ取得中は何も表示しない（またはローディング表示を出す）
+  if (!knowledge) return null;
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-4xl mx-auto">
+      {/* 戻るボタン */}
       <button
         onClick={() => navigate('/')}
-        className="flex items-center gap-2 text-[#4a6b6b] hover:text-[#1a7a7a] font-bold mb-8 transition-colors group"
+        className="group flex items-center gap-2 text-[#1a7a7a] font-bold mb-8 hover:text-[#0d3b3b] transition-colors"
       >
         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
         一覧に戻る
       </button>
 
-      <article className="bg-white rounded-[2.5rem] shadow-2xl shadow-teal-900/5 border border-teal-50 overflow-hidden">
-        <div className="p-8 sm:p-12">
-          <header className="mb-10 pb-8 border-b border-teal-50">
-            <h1 className="text-4xl font-black text-[#0d3b3b] mb-6 leading-tight">
-              {knowledge.title}
-            </h1>
-            
-            <div className="flex flex-wrap gap-6 text-sm font-bold text-slate-400">
-              <div className="flex items-center gap-2">
-                <Calendar size={16} />
-                作成: {knowledge.createdAt ? new Date(knowledge.createdAt).toLocaleString('ja-JP') : '-'}
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={16} />
-                更新: {knowledge.updatedAt ? new Date(knowledge.updatedAt).toLocaleString('ja-JP') : '-'}
-              </div>
+      <article className="bg-white rounded-[3rem] shadow-2xl shadow-teal-900/5 border border-teal-50 overflow-hidden">
+        {/* 記事のヘッダー部分 */}
+        <header className="px-10 py-12 border-b border-teal-50 bg-[#f9fbfb]">
+          <h1 className="text-4xl font-black text-[#0d3b3b] mb-6 leading-tight">
+            {knowledge.title}
+          </h1>
+          
+          {/* 日付などのメタ情報 */}
+          <div className="flex flex-wrap gap-6">
+            <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+              <Calendar size={14} className="text-[#1a7a7a]" />
+              作成: {knowledge.createdAt ? new Date(knowledge.createdAt).toLocaleDateString('ja-JP') : '-'}
             </div>
-          </header>
+            {knowledge.updatedAt && (
+              <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <Clock size={14} className="text-amber-500" />
+                更新: {new Date(knowledge.updatedAt).toLocaleDateString('ja-JP')}
+              </div>
+            )}
+          </div>
+        </header>
 
-          <div className="prose prose-teal max-w-none prose-headings:text-[#0d3b3b] prose-headings:font-black prose-a:text-[#1a7a7a] prose-strong:text-[#0d3b3b]">
+        {/* 記事の本文部分：Markdown 形式で表示 */}
+        <div className="px-10 py-12">
+          <div className="prose prose-teal prose-lg max-w-none">
+            {/* 
+              prose: Tailwind Typography プラグインのクラス。
+              Markdown から変換された HTML に美しいスタイル（見出し、リスト、リンクなど）を自動で適用します。
+            */}
             <MarkdownRenderer content={knowledge.content} />
           </div>
-
-          <div className="mt-12 pt-8 border-t border-teal-50 flex justify-end">
-            <button
-              onClick={() => navigate(`/edit/${knowledge.id}`)}
-              className="flex items-center gap-2 px-8 py-3 bg-amber-50 text-amber-700 rounded-2xl font-black hover:bg-amber-100 transition-all shadow-sm"
-            >
-              <Edit size={20} />
-              このナレッジを編集する
-            </button>
-          </div>
         </div>
+
+        {/* 記事下部の編集ボタン */}
+        <footer className="px-10 py-8 bg-teal-50/50 border-t border-teal-50 flex justify-end">
+          <button
+            onClick={() => navigate(`/edit/${knowledge.id}`)}
+            className="flex items-center gap-2 px-8 py-3 bg-white border-2 border-[#1a7a7a] text-[#1a7a7a] rounded-2xl font-black hover:bg-[#1a7a7a] hover:text-white transition-all shadow-lg shadow-teal-900/5 active:scale-95"
+          >
+            <Edit size={20} />
+            この記事を編集する
+          </button>
+        </footer>
       </article>
     </div>
   );

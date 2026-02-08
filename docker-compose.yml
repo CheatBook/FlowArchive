@@ -1,16 +1,37 @@
+# 【Docker Compose 設定ファイル】
+# 
+# 複数の Docker コンテナ（今回はデータベースのみ）をまとめて管理するための設定です。
+# 「docker compose up」コマンドを叩くだけで、環境が整います。
+
 services:
+  # データベースサービスの設定
   db:
+    # 使用する Docker イメージ（PostgreSQL のバージョン 16）
     image: postgres:16
+    
+    # コンテナに名前をつけます（管理しやすくするため）
     container_name: flowarchive-db
+    
+    # PC が再起動したり、エラーで落ちたりしても自動で再起動する設定
     restart: always
+    
+    # データベースの初期設定（環境変数）
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: flowarchive
+      POSTGRES_USER: user        # 接続ユーザー名
+      POSTGRES_PASSWORD: password # 接続パスワード
+      POSTGRES_DB: flowarchive   # 作成するデータベース名
+    
+    # ポート転送の設定
+    # 「PC側の 5432番ポート」へのアクセスを「コンテナ内の 5432番ポート」に繋ぎます
     ports:
       - "5432:5432"
+    
+    # データの永続化
+    # コンテナを消してもデータが消えないように、PC上の領域（postgres_data）に
+    # データベースの実体ファイルを保存します。
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+# 永続化に使用するボリュームの定義
 volumes:
   postgres_data:
