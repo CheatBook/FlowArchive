@@ -23,7 +23,6 @@ public class KnowledgeController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Knowledge> getById(@PathVariable Long id) {
-        System.out.println("getAll");
         return repository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
