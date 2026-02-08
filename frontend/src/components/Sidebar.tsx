@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, PlusCircle, Database, Github, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * 【Sidebar コンポーネント】
@@ -8,6 +9,8 @@ import { LayoutDashboard, PlusCircle, Database, Github, Info } from 'lucide-reac
  * 画面左側に固定されるナビゲーションメニューです。
  */
 const Sidebar: React.FC = () => {
+  const { t } = useTranslation();
+
   return (
     <aside className="w-72 bg-[#0d3b3b] text-white flex flex-col sticky top-0 h-screen shadow-2xl z-20">
       
@@ -44,7 +47,7 @@ const Sidebar: React.FC = () => {
             }
           >
             <LayoutDashboard size={20} />
-            ダッシュボード
+            {t('sidebar.dashboard')}
           </NavLink>
 
           <NavLink
@@ -58,7 +61,7 @@ const Sidebar: React.FC = () => {
             }
           >
             <PlusCircle size={20} />
-            新規作成
+            {t('sidebar.new_create')}
           </NavLink>
         </nav>
       </div>
@@ -68,18 +71,18 @@ const Sidebar: React.FC = () => {
         <div className="bg-white/5 rounded-[2rem] p-6 border border-white/10">
           <div className="flex items-center gap-2 text-teal-400 mb-4">
             <Database size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">System Status</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('common.system_status')}</span>
           </div>
           
           <div className="space-y-4">
             {/* DB 接続情報のダミー表示 */}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-teal-100/40">DATABASE</span>
+              <span className="text-[10px] font-bold text-teal-100/40 uppercase">{t('common.connected')}</span>
               <span className="text-[10px] font-black text-teal-400">CONNECTED</span>
             </div>
             {/* バージョン情報のダミー表示 */}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-teal-100/40">VERSION</span>
+              <span className="text-[10px] font-bold text-teal-100/40 uppercase">{t('common.version')}</span>
               <span className="text-[10px] font-black text-white">v1.0.4-STABLE</span>
             </div>
           </div>

@@ -1,12 +1,15 @@
 package com.example.flowarchive.controller;
 
+import com.example.flowarchive.constant.AppConstants;
 import com.example.flowarchive.model.Knowledge;
 import com.example.flowarchive.repository.KnowledgeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 【コントローラ：KnowledgeController】
@@ -15,8 +18,8 @@ import java.util.List;
  * ここで「どの URL にアクセスされたら、どの処理をするか」を交通整理します。
  */
 @RestController // JSON 形式でデータをやり取りする Web API であることを宣言
-@RequestMapping("/api/knowledge") // このクラスの処理はすべて "/api/knowledge" から始まる URL になります
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"}) // 開発中のフロントエンド（Viteなど）からのアクセスを許可
+@RequestMapping(AppConstants.API_BASE_PATH) // このクラスの処理はすべてベースパスから始まる URL になります
+@CrossOrigin(origins = {AppConstants.FRONTEND_URL_LEGACY, AppConstants.FRONTEND_URL_DEV}) // 開発中のフロントエンドからのアクセスを許可
 public class KnowledgeController {
 
     /**
@@ -28,6 +31,9 @@ public class KnowledgeController {
      */
     @Autowired
     private KnowledgeRepository repository;
+
+    @Autowired
+    private MessageSource messageSource;
 
     /**
      * 【全件取得】

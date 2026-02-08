@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, BookOpen, Clock, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Knowledge } from '../types/index';
 
 // バックエンド API の場所を定義。開発環境では localhost:8080 で Java が動いています。
@@ -12,6 +13,7 @@ const API_URL = 'http://localhost:8080/api/knowledge';
  * 登録されたナレッジをカード形式で一覧表示するページです。
  */
 const KnowledgeList: React.FC = () => {
+  const { t } = useTranslation();
   /**
    * [状態管理：useState]
    * knowledges: サーバーから取得したナレッジの配列を保存します。
@@ -102,7 +104,7 @@ const KnowledgeList: React.FC = () => {
           <span className="p-2 bg-[#1a7a7a] rounded-xl text-white shadow-lg shadow-teal-200">
             <BookOpen size={28} />
           </span>
-          ナレッジ一覧
+          {t('knowledge.list_title')}
         </h2>
         
         <div className="flex items-center gap-4">
@@ -110,7 +112,7 @@ const KnowledgeList: React.FC = () => {
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-teal-100 shadow-sm">
             <span className="w-2 h-2 bg-[#1a7a7a] rounded-full animate-pulse"></span>
             <span className="text-[#1a7a7a] text-sm font-black">
-              {knowledges.length} <span className="text-xs font-bold text-[#4a6b6b]">ITEMS</span>
+              {knowledges.length} <span className="text-xs font-bold text-[#4a6b6b]">{t('knowledge.items_count')}</span>
             </span>
           </div>
           
@@ -119,7 +121,7 @@ const KnowledgeList: React.FC = () => {
             onClick={() => navigate('/new')}
             className="flex items-center gap-2 px-6 py-2.5 bg-[#1a7a7a] hover:bg-[#0d3b3b] text-white rounded-xl font-bold transition-all shadow-lg shadow-teal-100 active:scale-95"
           >
-            <Plus size={20} /> 新規作成
+            <Plus size={20} /> {t('sidebar.new_create')}
           </button>
         </div>
       </div>
@@ -128,13 +130,13 @@ const KnowledgeList: React.FC = () => {
       {knowledges.length === 0 ? (
         <div className="text-center py-32 bg-white rounded-[3rem] border-4 border-dashed border-teal-50">
           <div className="text-7xl mb-6 opacity-20">🍃</div>
-          <p className="text-[#4a6b6b] font-bold text-2xl">まだナレッジが登録されていません。</p>
-          <p className="text-slate-400 text-lg mt-3 font-medium">新しい知識を記録して、アーカイブを充実させましょう。</p>
+          <p className="text-[#4a6b6b] font-bold text-2xl">{t('knowledge.no_items')}</p>
+          <p className="text-slate-400 text-lg mt-3 font-medium">{t('knowledge.no_items_desc')}</p>
           <button
             onClick={() => navigate('/new')}
             className="mt-8 px-8 py-3 bg-teal-50 text-[#1a7a7a] rounded-2xl font-black hover:bg-teal-100 transition-all"
           >
-            最初のナレッジを作成する
+            {t('knowledge.first_create')}
           </button>
         </div>
       ) : (
@@ -158,7 +160,7 @@ const KnowledgeList: React.FC = () => {
                   {getExcerpt(k.content)}
                 </p>
                 <div className="flex items-center gap-1 text-[#1a7a7a] font-bold text-sm mb-8 group-hover:gap-2 transition-all">
-                  詳細を見る <ChevronRight size={16} />
+                  {t('knowledge.view_detail')} <ChevronRight size={16} />
                 </div>
               </div>
               
@@ -175,7 +177,7 @@ const KnowledgeList: React.FC = () => {
                   <button
                     onClick={(e) => k.id && handleEdit(e, k.id)}
                     className="p-2.5 rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 transition-all"
-                    title="編集"
+                    title={t('common.edit')}
                   >
                     <Edit size={16} />
                   </button>
@@ -183,7 +185,7 @@ const KnowledgeList: React.FC = () => {
                   <button
                     onClick={(e) => k.id && handleDelete(e, k.id)}
                     className="p-2.5 rounded-xl bg-rose-50 text-red-600 hover:bg-rose-100 transition-all"
-                    title="削除"
+                    title={t('common.delete')}
                   >
                     <Trash2 size={16} />
                   </button>

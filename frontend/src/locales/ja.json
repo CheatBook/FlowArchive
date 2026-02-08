@@ -1,0 +1,39 @@
+{
+  "common": {
+    "save": "保存する",
+    "cancel": "キャンセル",
+    "edit": "編集",
+    "delete": "削除",
+    "back_to_list": "一覧に戻る",
+    "loading": "読み込み中...",
+    "confirm_delete": "本当に削除しますか？",
+    "system_status": "システムステータス",
+    "connected": "接続済み",
+    "version": "バージョン"
+  },
+  "sidebar": {
+    "dashboard": "ダッシュボード",
+    "new_create": "新規作成"
+  },
+  "knowledge": {
+    "list_title": "ナレッジ一覧",
+    "new_title": "新しいナレッジを追加",
+    "edit_title": "ナレッジを編集",
+    "detail_title": "ナレッジ詳細",
+    "items_count": "ITEMS",
+    "no_items": "まだナレッジが登録されていません。",
+    "no_items_desc": "新しい知識を記録して、アーカイブを充実させましょう。",
+    "first_create": "最初のナレッジを作成する",
+    "view_detail": "詳細を見る",
+    "title_label": "タイトル",
+    "title_placeholder": "何について記録しますか？",
+    "content_label": "内容 (Markdown)",
+    "content_placeholder": "Markdown形式で詳細な情報を入力してください...",
+    "editor": "エディタ",
+    "preview": "プレビュー",
+    "no_preview": "*プレビューする内容がありません*",
+    "created_at": "作成",
+    "updated_at": "更新",
+    "edit_this": "この記事を編集する"
+  }
+}

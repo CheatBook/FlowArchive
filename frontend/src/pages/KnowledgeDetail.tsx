@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import { ArrowLeft, Edit, Clock, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Knowledge } from '../types/index';
 
 const API_URL = 'http://localhost:8080/api/knowledge';
@@ -12,6 +13,7 @@ const API_URL = 'http://localhost:8080/api/knowledge';
  * 特定のナレッジをフルサイズで表示する詳細ページです。
  */
 const KnowledgeDetail: React.FC = () => {
+  const { t } = useTranslation();
   // URL パラメータから ID を取得
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -97,7 +99,7 @@ const KnowledgeDetail: React.FC = () => {
             className="flex items-center gap-2 px-8 py-3 bg-white border-2 border-[#1a7a7a] text-[#1a7a7a] rounded-2xl font-black hover:bg-[#1a7a7a] hover:text-white transition-all shadow-lg shadow-teal-900/5 active:scale-95"
           >
             <Edit size={20} />
-            この記事を編集する
+            {t('knowledge.edit_this')}
           </button>
         </footer>
       </article>
