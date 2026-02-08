@@ -1,52 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MarkdownRenderer from '../components/MarkdownRenderer';
-import { ArrowLeft, Edit, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Edit, Clock, Calendar, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import type { Knowledge } from '../types/index';
 
 const API_URL = 'http://localhost:8080/api/knowledge';
 
 /**
+ * 特定のナレッジを 1件取得する関数
+ */
+const fetchKnowledge = async (id: string): Promise<Knowledge> => {
+  const response = await fetch(`${API_URL}/${id}`);
+  if (!response.ok) throw new Error('Knowledge not found');
+  return response.json();
+};
+
+/**
  * 【KnowledgeDetail コンポーネント】
  * 
- * 特定のナレッジをフルサイズで表示する詳細ページです。
+ * TanStack Query を使用して 1件のデータを取得・管理します。
  */
 const KnowledgeDetail: React.FC = () => {
   const { t } = useTranslation();
-  // URL パラメータから ID を取得
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // 取得したナレッジデータを保存する State
-  const [knowledge, setKnowledge] = useState<Knowledge | null>(null);
-
   /**
-   * 画面表示時にデータを取得
+   * [データ取得：useQuery]
+   * id が存在する場合のみ実行されるように設定。
    */
-  useEffect(() => {
-    if (id) {
-      fetchKnowledge(id);
-    }
-  }, [id]);
+  const { data: knowledge, isLoading, isError } = useQuery({
+    queryKey: ['knowledge', id],
+    queryFn: () => fetchKnowledge(id!),
+    enabled: !!id, // id がある時だけ実行
+  });
 
-  const fetchKnowledge = async (knowledgeId: string) => {
-    try {
-      const response = await fetch(`${API_URL}/${knowledgeId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setKnowledge(data);
-      } else {
-        // 見つからなかった場合は一覧に戻す
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('データの取得に失敗しました:', error);
-    }
-  };
+  // 読み込み中の表示
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-[#1a7a7a]">
+        <Loader2 size={48} className="animate-spin mb-4" />
+        <p className="font-bold">{t('common.loading')}</p>
+      </div>
+    );
+  }
 
-  // データ取得中は何も表示しない（またはローディング表示を出す）
-  if (!knowledge) return null;
+  // エラー時、またはデータが見つからない場合
+  if (isError || !knowledge) {
+    return (
+      <div className="text-center py-32">
+        <p className="text-rose-600 font-bold text-xl">ナレッジが見つかりませんでした。</p>
+        <button onClick={() => navigate('/')} className="mt-4 text-[#1a7a7a] font-bold">
+          一覧に戻る
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -56,7 +67,7 @@ const KnowledgeDetail: React.FC = () => {
         className="group flex items-center gap-2 text-[#1a7a7a] font-bold mb-8 hover:text-[#0d3b3b] transition-colors"
       >
         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        一覧に戻る
+        {t('common.back_to_list')}
       </button>
 
       <article className="bg-white rounded-[3rem] shadow-2xl shadow-teal-900/5 border border-teal-50 overflow-hidden">
@@ -70,12 +81,12 @@ const KnowledgeDetail: React.FC = () => {
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
               <Calendar size={14} className="text-[#1a7a7a]" />
-              作成: {knowledge.createdAt ? new Date(knowledge.createdAt).toLocaleDateString('ja-JP') : '-'}
+              {t('knowledge.created_at')}: {knowledge.createdAt ? new Date(knowledge.createdAt).toLocaleDateString('ja-JP') : '-'}
             </div>
             {knowledge.updatedAt && (
               <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
                 <Clock size={14} className="text-amber-500" />
-                更新: {new Date(knowledge.updatedAt).toLocaleDateString('ja-JP')}
+                {t('knowledge.updated_at')}: {new Date(knowledge.updatedAt).toLocaleDateString('ja-JP')}
               </div>
             )}
           </div>
@@ -84,10 +95,6 @@ const KnowledgeDetail: React.FC = () => {
         {/* 記事の本文部分：Markdown 形式で表示 */}
         <div className="px-10 py-12">
           <div className="prose prose-teal prose-lg max-w-none">
-            {/* 
-              prose: Tailwind Typography プラグインのクラス。
-              Markdown から変換された HTML に美しいスタイル（見出し、リスト、リンクなど）を自動で適用します。
-            */}
             <MarkdownRenderer content={knowledge.content} />
           </div>
         </div>

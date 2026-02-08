@@ -1,77 +1,79 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Plus, BookOpen, Clock, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, Plus, BookOpen, Clock, ChevronRight, Loader2, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import type { Knowledge } from '../types/index';
 
-// バックエンド API の場所を定義。開発環境では localhost:8080 で Java が動いています。
+// バックエンド API の場所を定義
 const API_URL = 'http://localhost:8080/api/knowledge';
+
+/**
+ * ページネーション対応のデータ構造
+ */
+interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number; // 現在のページ番号
+  size: number;   // 1ページあたりの件数
+}
+
+/**
+ * API からナレッジ一覧を取得する関数（ページ指定対応）
+ */
+const fetchKnowledges = async (page: number): Promise<PageResponse<Knowledge>> => {
+  const response = await fetch(`${API_URL}?page=${page}&size=6&sort=createdAt,desc`);
+  if (!response.ok) throw new Error('Network response was not ok');
+  return response.json();
+};
 
 /**
  * 【KnowledgeList コンポーネント】
  * 
- * 登録されたナレッジをカード形式で一覧表示するページです。
+ * TanStack Query を使用してページネーション対応のデータを取得・管理します。
  */
 const KnowledgeList: React.FC = () => {
   const { t } = useTranslation();
-  /**
-   * [状態管理：useState]
-   * knowledges: サーバーから取得したナレッジの配列を保存します。
-   * setKnowledges: knowledges の中身を更新するための関数です。
-   */
-  const [knowledges, setKnowledges] = useState<Knowledge[]>([]);
-
-  /**
-   * [画面遷移：useNavigate]
-   * ボタンクリックなどで別の URL へ移動したい時に使用します。
-   */
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
+  // 現在のページ番号の状態（0から開始）
+  const [page, setPage] = useState(0);
 
   /**
-   * [副作用：useEffect]
-   * コンポーネントが画面に表示された直後に実行したい処理を書きます。
-   * 第二引数が [] なので、「最初の1回だけ」実行されます。
+   * [データ取得：useQuery]
+   * - queryKey に page を含めることで、ページが変わるたびに再取得されます。
+   * - placeholderData: keepPreviousData を使うことで、次のページ読み込み中も前のデータを表示し続けます。
    */
-  useEffect(() => {
-    fetchKnowledges(); // 画面が出たらすぐにデータを取ってくる
-  }, []);
+  const { data, isLoading, isError, isPlaceholderData } = useQuery({
+    queryKey: ['knowledges', page],
+    queryFn: () => fetchKnowledges(page),
+    placeholderData: keepPreviousData,
+  });
+
+  const knowledges = data?.content || [];
+  const totalPages = data?.totalPages || 0;
 
   /**
-   * サーバーからデータを取得する関数（非同期処理：async/await）
+   * [データ削除：useMutation]
    */
-  const fetchKnowledges = async () => {
-    try {
-      // 1. サーバーに GET リクエストを送る
-      const response = await fetch(API_URL);
-      // 2. レスポンスを JSON 形式として解釈する
-      const data = await response.json();
-      // 3. 取得したデータを状態（State）に保存する。これで画面が自動的に再描画されます。
-      setKnowledges(data);
-    } catch (error) {
-      console.error('データの取得に失敗しました:', error);
-    }
-  };
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['knowledges'] });
+    },
+  });
 
   /**
    * 削除ボタンが押された時の処理
-   * 
-   * @param e イベントオブジェクト（クリックの詳細情報）
-   * @param id 削除したいナレッジの ID
    */
   const handleDelete = async (e: React.MouseEvent, id: number) => {
-    // 重要：カード全体のクリック（詳細へ移動）が反応しないようにイベントを止めます
     e.stopPropagation(); 
-
-    if (!window.confirm('本当に削除しますか？')) return;
-
-    try {
-      // サーバーに DELETE リクエストを送る
-      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-      // 削除に成功したら、最新のリストを再取得して画面を更新する
-      fetchKnowledges();
-    } catch (error) {
-      console.error('削除に失敗しました:', error);
-    }
+    if (!window.confirm(t('common.confirm_delete'))) return;
+    deleteMutation.mutate(id);
   };
 
   /**
@@ -112,7 +114,7 @@ const KnowledgeList: React.FC = () => {
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-teal-100 shadow-sm">
             <span className="w-2 h-2 bg-[#1a7a7a] rounded-full animate-pulse"></span>
             <span className="text-[#1a7a7a] text-sm font-black">
-              {knowledges.length} <span className="text-xs font-bold text-[#4a6b6b]">{t('knowledge.items_count')}</span>
+              {data?.totalElements || 0} <span className="text-xs font-bold text-[#4a6b6b]">{t('knowledge.items_count')}</span>
             </span>
           </div>
           
@@ -126,8 +128,17 @@ const KnowledgeList: React.FC = () => {
         </div>
       </div>
 
-      {/* ナレッジが1件もない場合の表示 */}
-      {knowledges.length === 0 ? (
+      {/* 読み込み中・エラー時の表示 */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-32 text-[#1a7a7a]">
+          <Loader2 size={48} className="animate-spin mb-4" />
+          <p className="font-bold">{t('common.loading')}</p>
+        </div>
+      ) : isError ? (
+        <div className="text-center py-32 bg-rose-50 rounded-[3rem] border-2 border-rose-100">
+          <p className="text-rose-600 font-bold text-xl">データの取得に失敗しました。</p>
+        </div>
+      ) : knowledges.length === 0 ? (
         <div className="text-center py-32 bg-white rounded-[3rem] border-4 border-dashed border-teal-50">
           <div className="text-7xl mb-6 opacity-20">🍃</div>
           <p className="text-[#4a6b6b] font-bold text-2xl">{t('knowledge.no_items')}</p>
@@ -193,6 +204,47 @@ const KnowledgeList: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ページネーション UI */}
+      {totalPages > 1 && (
+        <div className="mt-16 flex items-center justify-center gap-4">
+          <button
+            onClick={() => setPage((old) => Math.max(old - 1, 0))}
+            disabled={page === 0}
+            className="p-4 rounded-2xl bg-white border border-teal-50 text-[#1a7a7a] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-teal-50 transition-all shadow-sm"
+          >
+            <ChevronLeft size={24} />
+          </button>
+          
+          <div className="flex items-center gap-2">
+            {[...Array(totalPages)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                className={`w-12 h-12 rounded-2xl font-black transition-all ${
+                  page === i
+                    ? 'bg-[#1a7a7a] text-white shadow-lg shadow-teal-200'
+                    : 'bg-white text-[#4a6b6b] hover:bg-teal-50 border border-teal-50'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => {
+              if (!isPlaceholderData && page < totalPages - 1) {
+                setPage((old) => old + 1);
+              }
+            }}
+            disabled={isPlaceholderData || page >= totalPages - 1}
+            className="p-4 rounded-2xl bg-white border border-teal-50 text-[#1a7a7a] disabled:opacity-30 disabled:cursor-not-allowed hover:bg-teal-50 transition-all shadow-sm"
+          >
+            <ChevronRight size={24} />
+          </button>
         </div>
       )}
     </div>

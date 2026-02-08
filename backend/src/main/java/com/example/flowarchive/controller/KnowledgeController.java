@@ -5,6 +5,10 @@ import com.example.flowarchive.model.Knowledge;
 import com.example.flowarchive.repository.KnowledgeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,16 +40,18 @@ public class KnowledgeController {
     private MessageSource messageSource;
 
     /**
-     * 【全件取得】
+     * 【全件取得（ページネーション対応）】
      * HTTP メソッド: GET
-     * URL: /api/knowledge
+     * URL: /api/knowledge?page=0&size=10&sort=createdAt,desc
      * 
-     * @return DB に保存されているすべてのナレッジのリスト
+     * @param pageable ページング情報（Spring が自動でリクエストパラメータから構築します）
+     * @return ページ情報を含むナレッジのリスト
      */
     @GetMapping
-    public List<Knowledge> getAll() {
-        // repository.findAll() は SQL の "SELECT * FROM knowledge" を実行します
-        return repository.findAll();
+    public Page<Knowledge> getAll(
+            @PageableDefault(size = 6, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        // repository.findAll(pageable) は SQL の "SELECT * FROM knowledge LIMIT 6 OFFSET ..." を実行します
+        return repository.findAll(pageable);
     }
 
     /**
