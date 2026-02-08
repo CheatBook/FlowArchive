@@ -1,0 +1,27 @@
+# Build and dependency directories
+**/node_modules/
+**/target/
+**/dist/
+**/.gradle/
+**/build/
+
+# IDE settings
+**/.idea/
+**/.vscode/
+*.swp
+*.swo
+**/.settings/
+**/.project
+**/.classpath
+**/.factorypath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+**/.env
+**/.env.local
+
+# Database
+**/postgres_data/
