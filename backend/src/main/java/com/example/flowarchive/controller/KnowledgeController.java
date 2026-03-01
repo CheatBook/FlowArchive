@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController // JSON 形式でデータをやり取りする Web API であることを宣言
 @RequestMapping(AppConstants.API_BASE_PATH) // このクラスの処理はすべてベースパスから始まる URL になります
-@CrossOrigin(origins = {AppConstants.FRONTEND_URL_LEGACY, AppConstants.FRONTEND_URL_DEV}) // 開発中のフロントエンドからのアクセスを許可
 public class KnowledgeController {
 
     /**
