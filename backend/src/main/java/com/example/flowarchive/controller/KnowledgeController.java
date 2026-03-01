@@ -3,7 +3,7 @@ package com.example.flowarchive.controller;
 import com.example.flowarchive.constant.AppConstants;
 import com.example.flowarchive.model.Knowledge;
 import com.example.flowarchive.repository.KnowledgeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,17 +19,17 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController // JSON 形式でデータをやり取りする Web API であることを宣言
 @RequestMapping(AppConstants.API_BASE_PATH) // このクラスの処理はすべてベースパスから始まる URL になります
+@RequiredArgsConstructor // final がついたフィールドを引数に持つコンストラクタを自動生成します（コンストラクタ注入）
 public class KnowledgeController {
 
     /**
      * Dependency Injection (依存性の注入)
      * 
-     * @Autowired: 
-     * Spring があらかじめ作っておいた KnowledgeRepository の実体を、
-     * この変数に自動的にセットしてくれます。自分で "new" する必要はありません。
+     * モダンな Spring Boot 開発では、フィールドへの @Autowired ではなく、
+     * コンストラクタ注入が推奨されます。
+     * final をつけることで、依存関係が不変（Immutable）になり、テストもしやすくなります。
      */
-    @Autowired
-    private KnowledgeRepository repository;
+    private final KnowledgeRepository repository;
 
     /**
      * 【全件取得（ページネーション対応）】
