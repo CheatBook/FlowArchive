@@ -19,7 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
         // 全ての API パス（/api/**）に対して設定を適用
         registry.addMapping("/api/**")
                 // 許可するオリジン（アクセス元）を指定
-                .allowedOrigins(AppConstants.FRONTEND_URL_LEGACY, AppConstants.FRONTEND_URL_DEV)
+                .allowedOrigins(AppConstants.FRONTEND_URL_LEGACY, AppConstants.FRONTEND_URL_DEV, AppConstants.FRONTEND_URL_DEV_2)
                 // 許可する HTTP メソッドを指定
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 // 許可する HTTP ヘッダーを指定

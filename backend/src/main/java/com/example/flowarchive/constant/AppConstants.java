@@ -12,6 +12,7 @@ public class AppConstants {
     
     // フロントエンドの URL（CORS 設定用）
     public static final String FRONTEND_URL_DEV = "http://localhost:5173";
+    public static final String FRONTEND_URL_DEV_2 = "http://localhost:5174";
     public static final String FRONTEND_URL_LEGACY = "http://localhost:3000";
 
     // プライベートコンストラクタ（インスタンス化を禁止）
